@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sorting Algorithms Visualizer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <section class="title-section">
+    <h1>SORTING ALGORITHMS VISUALIZER</h1>
+  </section>
+  
+  <header class="navbar">
+    <div class="nav-left">
+      <a href="#home" class="nav-link">Home</a>
+      <a href="#controls" class="nav-link">Controls</a>
+      <a href="#arrayContainer" class="nav-link">Visualizer</a>
+      <a href="#algoInfoBox" class="nav-link">Overview</a>
+    </div>
+    <div class="nav-right">
+      <button id="themeToggle">🌙</button>
+      <a href="#about" class="nav-link">About Us</a>
+      <button class="auth-nav-btn" onclick="showAuth()">Login / Signup</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="home" class="home-section">
+      <h2>Welcome to the Sorting Algorithms Visualizer — where algorithms in motion help you learn by seeing.</h2>
+      <p>This interactive project lets you explore and compare various sorting algorithms with animated visuals. Use the controls below to begin your journey!</p>
+    </section>
+    
+    <section id="controls" class="controls">
+      <div class="control-group">
+        <button onclick="generateArray()">🔄 Reset Array</button>
+        <select id="algorithmSelect">
+          <option value="">Select Algorithm</option>
+          <option value="Bubble Sort">Bubble Sort</option>
+          <option value="Insertion Sort">Insertion Sort</option>
+          <option value="Selection Sort">Selection Sort</option>
+          <option value="Merge Sort">Merge Sort</option>
+          <option value="Quick Sort">Quick Sort</option>
+          <option value="Heap Sort">Heap Sort</option>
+          <option value="Shell Sort">Shell Sort</option>
+          <option value="Radix Sort">Radix Sort</option>
+        </select>
+        <label for="speedSlider">Speed:</label>
+        <input type="range" id="speedSlider" min="10" max="200" value="50"/>
+      </div>
+
+      <div class="control-group">
+        <button onclick="startSorting()">▶ Start</button>
+        <button onclick="pauseSorting()">⏸ Pause</button>
+        <button onclick="resumeSorting()">⏯ Resume</button>
+        <button onclick="stopSorting()">⛔ Stop</button>
+      </div>
+
+      <div class="control-group">
+        Comparisons: <span id="comparisons">0</span> |
+        Swaps: <span id="swaps">0</span>
+      </div>
+
+      <div class="control-group">
+        <label>Enter custom array:</label>
+        <input type="text" id="manualInput" placeholder="[10, 20, 30]" />
+        <button onclick="applyManualInput()">Apply</button>
+      </div>
+
+      <div class="control-group">
+        <label>Upload JSON file:</label>
+        <input type="file" id="fileInput" accept=".json"/>
+      </div>
+
+      <div class="control-group">
+        <label><input type="checkbox" id="stepToggle" /> Step-by-Step Mode</label>
+        <button id="nextStepBtn">Next Step</button>
+      </div>
+    </section>
+
+    <section id="arrayContainer"></section>
+    <section class="algo-info" id="algoInfoBox"></section>
+    <div id="timer" style="text-align:center; margin-top:1rem; font-size:1.2rem; color:var(--accent);"></div>
+
+    <section class="algo-info" id="historyBox" style="display: none;">
+      <h3>Your Sorting History</h3>
+      <div id="historyContent">Loading...</div>
+    </section>
+
+    <section class="algo-info" id="historyBox" style="display: none;">
+  <h3>Your Sorting History</h3>
+  <div id="historyContent">Loading...</div>
+</section>
+
+    
+    
+    <section id="about" class="about-section">
+      <h2>About This Project</h2>
+      <p>Sorting Algorithms Visualizer is an interactive platform built with care and precision to help users understand the inner workings of popular sorting algorithms. It’s designed not just to function—but to engage, educate, and inspire curiosity.</p>
+
+        <p>The interface is clean, responsive, and intuitive, with features like animated visualizations, user-defined input, speed control, algorithm info, and personalized history tracking—all powered by a full-stack Java backend and database integration.</p>
+      
+    </section>
+
+    <footer class="footer">
+      Made with 🩵  by Trapti Kashyap
+    </footer>
+  </main>
+
+  <!-- ✅ AUTH POPUP -->
+  <div id="authPopup" class="auth-popup hidden">
+    <div class="auth-box">
+      <h2 id="authTitle">User Login</h2>
+      <form id="authForm" onsubmit="event.preventDefault(); isSignup ? userSignup() : userLogin();">
+        <input type="text" id="authUsername" placeholder="Username" required />
+        <input type="email" id="authEmail" placeholder="Email (for signup)" class="hidden" />
+        <input type="password" id="authPassword" placeholder="Password" required />
+        <input type="password" id="authConfirmPassword" placeholder="Confirm Password" class="hidden" />
+
+        <div class="auth-actions">
+          <button type="submit" id="authSubmitBtn">Login</button>
+          <button type="button" onclick="toggleAuthMode()">Switch to Signup</button>
+          <button type="button" onclick="closeAuth()">Cancel</button>
+        </div>
+        <p id="authMessage"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="progressContainer"><div id="progressBar"></div></div>
+
+  
+
+  <script src="script.js"></script>
+</body>
+</html>
