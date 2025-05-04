@@ -15,3 +15,6 @@ EXPOSE 8081
 
 # Run the backend server
 CMD ["java", "-cp", ".:gson-2.8.9.jar:mysql-connector-j-9.3.0.jar", "MainServer"]
+
+
+
