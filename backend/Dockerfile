@@ -1,4 +1,4 @@
-]# Use a base Java image
+# Use a base Java image
 FROM openjdk:17-jdk-slim
 
 # Set working directory
