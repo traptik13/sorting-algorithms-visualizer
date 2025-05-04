@@ -7,12 +7,16 @@ import com.google.gson.*;
 public class MainServer {
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8081"));
-HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-System.out.println("✅ Server running on port: " + port);
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        System.out.println("✅ Server running on port: " + port);
 
-        
         // ✅ Root healthcheck endpoint for Railway
         server.createContext("/", exchange -> {
+            addCORSHeaders(exchange);
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(204, -1);
+                return;
+            }
             String response = "✅ Backend server is running!";
             exchange.sendResponseHeaders(200, response.length());
             try (OutputStream os = exchange.getResponseBody()) {
@@ -56,7 +60,6 @@ System.out.println("✅ Server running on port: " + port);
             }
         });
 
-        // ✅ Context for saving history
         server.createContext("/saveHistory", exchange -> {
             addCORSHeaders(exchange);
             if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -66,15 +69,14 @@ System.out.println("✅ Server running on port: " + port);
             }
         });
 
-        server.setExecutor(null);
+        server.setExecutor(null); // creates a default executor
         server.start();
-        System.out.println("✅ Server running on http://localhost:8081");
     }
 
     private static void addCORSHeaders(HttpExchange exchange) {
         Headers headers = exchange.getResponseHeaders();
-        headers.add("Access-Control-Allow-Origin", "*");
-        headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        headers.add("Access-Control-Allow-Headers", "Content-Type");
+        headers.set("Access-Control-Allow-Origin", "*");
+        headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        headers.set("Access-Control-Allow-Headers", "Content-Type");
     }
 }
