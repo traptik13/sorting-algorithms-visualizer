@@ -1,9 +1,6 @@
 {
   "build": {
-    "builder": "DOCKERFILE",
-    "dockerfilePath": "backend/Dockerfile",
-    "buildCommand": "",
-    "startCommand": ""
+    "dockerfilePath": "backend/Dockerfile"
   },
   "deploy": {
     "healthcheckPath": "/",
