@@ -1,0 +1,22 @@
+# Java
+*.class
+*.jar
+
+# IDEs and Editors
+.vscode/
+*.iml
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Node modules (if using npm/yarn for any part)
+node_modules/
+dist/
+
+# Environment variables and sensitive config files
+.env
