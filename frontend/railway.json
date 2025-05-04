@@ -1,0 +1,11 @@
+{
+    "build": {
+      "builder": "STATIC",
+      "buildCommand": "",
+      "outputDirectory": "./"
+    },
+    "deploy": {
+      "restartPolicyType": "NEVER"
+    }
+  }
+  
