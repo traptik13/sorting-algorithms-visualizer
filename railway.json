@@ -1,11 +1,10 @@
-
 {
   "build": {
     "builder": "DOCKERFILE",
     "dockerfilePath": "backend/Dockerfile"
   },
   "deploy": {
-    "healthcheckPath": "/login",
+    "healthcheckPath": "/",
     "restartPolicyType": "ON_FAILURE"
   }
 }
