@@ -8,6 +8,15 @@ public class MainServer {
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8081), 0);
 
+        // ✅ Root healthcheck endpoint for Railway
+        server.createContext("/", exchange -> {
+            String response = "✅ Backend server is running!";
+            exchange.sendResponseHeaders(200, response.length());
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        });
+
         server.createContext("/signup", exchange -> {
             addCORSHeaders(exchange);
             if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -43,9 +52,8 @@ public class MainServer {
                 UserUtils.handleGetHistory(exchange);
             }
         });
-        
 
-        // ✅ NEW CONTEXT FOR /saveHistory
+        // ✅ Context for saving history
         server.createContext("/saveHistory", exchange -> {
             addCORSHeaders(exchange);
             if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
