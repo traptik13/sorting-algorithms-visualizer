@@ -6,8 +6,11 @@ import com.google.gson.*;
 
 public class MainServer {
     public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8081), 0);
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8081"));
+HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+System.out.println("✅ Server running on port: " + port);
 
+        
         // ✅ Root healthcheck endpoint for Railway
         server.createContext("/", exchange -> {
             String response = "✅ Backend server is running!";
