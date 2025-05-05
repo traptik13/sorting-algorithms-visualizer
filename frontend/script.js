@@ -87,8 +87,13 @@ function viewHistory() {
     return;
   }
 
-  fetch("https://sorting-backend.up.railway.app/getHistory?username=" + encodeURIComponent(username))
-    .then(res => res.json())
+  fetch("https://sorting-backend.onrender.com/getHistory?username=" + encodeURIComponent(username), {
+    mode: "cors"
+  })
+    .then(async res => {
+      if (!res.ok) throw new Error("Failed to fetch history");
+      return await res.json();
+    })
     .then(data => {
       const container = document.getElementById("historyContent");
       if (!data || data.length === 0) {
@@ -142,19 +147,24 @@ function startSorting() {
   isReset = false;
   stepMode = stepToggle.checked;
 
-  fetch("https://sorting-backend.up.railway.app/sort", {
+  fetch("https://sorting-backend.onrender.com/sort", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    mode: "cors",
     body: JSON.stringify({ array, algorithm: algorithmSelect.value })
   })
-    .then(res => res.json())
+    .then(async res => {
+      if (!res.ok) throw new Error("Sort failed");
+      return await res.json();
+    })
     .then(data => {
       sortingSteps = data.steps;
       currentStep = 0;
 
-      fetch("https://sorting-backend.up.railway.app/saveHistory", {
+      fetch("https://sorting-backend.onrender.com/saveHistory", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        mode: "cors",
         body: JSON.stringify({
           username: localStorage.getItem("loggedInUser") || "Guest",
           algorithm: algorithmSelect.value,
@@ -164,7 +174,7 @@ function startSorting() {
 
       runSortingSteps();
     })
-    .catch(() => alert("❌ Backend error. Is the Railway backend live?"));
+    .catch(() => alert("❌ Backend error. Is the Render backend live?"));
 }
 
 function runSortingSteps() {
@@ -305,12 +315,16 @@ function userLogin() {
   const username = document.getElementById('authUsername').value.trim();
   const password = document.getElementById('authPassword').value.trim();
 
-  fetch("https://sorting-backend.up.railway.app/login", {
+  fetch("https://sorting-backend.onrender.com/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    mode: "cors",
     body: JSON.stringify({ username, password })
   })
-    .then(res => res.json())
+    .then(async res => {
+      if (!res.ok) throw new Error("Login failed");
+      return await res.json();
+    })
     .then(data => {
       if (data.success) {
         localStorage.setItem('loggedInUser', username);
@@ -319,6 +333,9 @@ function userLogin() {
       } else {
         document.getElementById('authMessage').innerText = "Invalid credentials ❌";
       }
+    })
+    .catch(() => {
+      document.getElementById('authMessage').innerText = "❌ Login failed";
     });
 }
 function userSignup() {
@@ -332,12 +349,16 @@ function userSignup() {
     return;
   }
 
-  fetch("https://sorting-backend.up.railway.app/signup", {
+  fetch("https://sorting-backend.onrender.com/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    mode: "cors",
     body: JSON.stringify({ username, password, email })
   })
-    .then(res => res.json())
+    .then(async res => {
+      if (!res.ok) throw new Error("Signup failed");
+      return await res.json();
+    })
     .then(data => {
       if (data.success) {
         localStorage.setItem('loggedInUser', username);
@@ -346,6 +367,9 @@ function userSignup() {
       } else {
         document.getElementById('authMessage').innerText = "❌ Username already taken";
       }
+    })
+    .catch(() => {
+      document.getElementById('authMessage').innerText = "❌ Signup failed";
     });
 }
 function logoutUser() {
