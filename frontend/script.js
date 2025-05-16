@@ -1,3 +1,4 @@
+
 let array = [];
 let sortingSteps = [];
 let currentStep = 0;
@@ -35,7 +36,10 @@ window.onload = () => {
     swapSound = { play: () => {} };
   }
 
-  speedSlider.addEventListener("input", () => speed = parseInt(speedSlider.value));
+  speedSlider.addEventListener("input", () => {
+    speed = 100 - parseInt(speedSlider.value) + 10;
+  });
+  
   fileInput.addEventListener("change", handleFileUpload);
   nextStepBtn.addEventListener("click", nextStep);
   algorithmSelect.addEventListener("change", () => displayAlgorithmInfo(algorithmSelect.value));
@@ -87,13 +91,8 @@ function viewHistory() {
     return;
   }
 
-  fetch("https://sorting-backend.onrender.com/getHistory?username=" + encodeURIComponent(username), {
-    mode: "cors"
-  })
-    .then(async res => {
-      if (!res.ok) throw new Error("Failed to fetch history");
-      return await res.json();
-    })
+  fetch("http://localhost:8081/getHistory?username=" + encodeURIComponent(username))
+    .then(res => res.json())
     .then(data => {
       const container = document.getElementById("historyContent");
       if (!data || data.length === 0) {
@@ -147,24 +146,19 @@ function startSorting() {
   isReset = false;
   stepMode = stepToggle.checked;
 
-  fetch("https://sorting-backend.onrender.com/sort", {
+  fetch("http://localhost:8081/sort", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    mode: "cors",
     body: JSON.stringify({ array, algorithm: algorithmSelect.value })
   })
-    .then(async res => {
-      if (!res.ok) throw new Error("Sort failed");
-      return await res.json();
-    })
+    .then(res => res.json())
     .then(data => {
       sortingSteps = data.steps;
       currentStep = 0;
 
-      fetch("https://sorting-backend.onrender.com/saveHistory", {
+      fetch("http://localhost:8081/saveHistory", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        mode: "cors",
         body: JSON.stringify({
           username: localStorage.getItem("loggedInUser") || "Guest",
           algorithm: algorithmSelect.value,
@@ -174,7 +168,7 @@ function startSorting() {
 
       runSortingSteps();
     })
-    .catch(() => alert("❌ Backend error. Is the Render backend live?"));
+    .catch(() => alert("❌ Backend error. Is port 8081 running?"));
 }
 
 function runSortingSteps() {
@@ -187,17 +181,28 @@ function runSortingSteps() {
 
   const prevArray = [...array];
   array = sortingSteps[currentStep++];
-  const swapped = array.map((val, i) => (val !== prevArray[i] ? i : -1)).filter(i => i >= 0);
 
-  swapped.length ? swapSound.play() : clickSound.play();
-  swapped.length ? swaps++ : comparisons++;
+  const swapped = array
+    .map((val, i) => (val !== prevArray[i] ? i : -1))
+    .filter(i => i >= 0);
+
+  clickSound.play();
+  if (swapped.length) {
+    swapSound.play();
+    swaps++;
+  }
+
+  comparisons++; // ✅ always increment comparisons
 
   renderArray(swapped);
   updateCounters();
   progressBar.style.width = `${(currentStep / sortingSteps.length) * 100}%`;
 
-  if (!stepMode) setTimeout(runSortingSteps, speed);
+  if (!stepMode) {
+    setTimeout(runSortingSteps, speed);
+  }
 }
+
 
 function pauseSorting() { isPaused = true; }
 function resumeSorting() { if (isPaused) { isPaused = false; runSortingSteps(); } }
@@ -216,19 +221,27 @@ function applyManualInput() {
 }
 
 function handleFileUpload(event) {
+  const file = event.target.files[0]; // ✅ Get the selected file
+  if (!file) {
+    alert("❌ No file selected.");
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const uploaded = JSON.parse(e.target.result);
-      if (!Array.isArray(uploaded)) throw new Error();
+      if (!Array.isArray(uploaded)) throw new Error("Not an array.");
       array = uploaded;
-      renderArray();
+      renderArray(); // ✅ Update bars
     } catch {
-      alert("Invalid file content.");
+      alert("❌ Invalid file content. Must be a plain array like [10, 20, 30]");
     }
   };
-  reader.readAsText(event.target.files[0]);
+
+  reader.readAsText(file); // ✅ Make sure file is passed here
 }
+
 
 function nextStep() {
   if (currentStep < sortingSteps.length) {
@@ -245,39 +258,40 @@ function nextStep() {
 
 function displayAlgorithmInfo(name) {
   const info = {
-    "Bubble Sort": {
-      time: "Best: O(n), Avg/Worst: O(n²)", space: "O(1)",
-      desc: "Bubble Sort repeatedly compares adjacent elements and swaps them if they are in the wrong order. This continues until the list is fully sorted."
-    },
-    "Insertion Sort": {
-      time: "Best: O(n), Avg/Worst: O(n²)", space: "O(1)",
-      desc: "Insertion Sort builds the sorted array one item at a time by inserting each item into its correct position relative to the sorted part."
-    },
-    "Selection Sort": {
-      time: "Best/Worst/Avg: O(n²)", space: "O(1)",
-      desc: "Selection Sort selects the smallest remaining element and places it at the correct position. It is simple but inefficient for large lists."
-    },
-    "Merge Sort": {
-      time: "Best/Worst/Avg: O(n log n)", space: "O(n)",
-      desc: "Merge Sort divides the array into halves, recursively sorts them, and merges them back together. It's efficient and stable."
-    },
-    "Quick Sort": {
-      time: "Best/Avg: O(n log n), Worst: O(n²)", space: "O(log n)",
-      desc: "Quick Sort picks a pivot, partitions the array around it, and recursively sorts the partitions. It's fast but can degrade with poor pivots."
-    },
-    "Heap Sort": {
-      time: "Best/Worst/Avg: O(n log n)", space: "O(1)",
-      desc: "Heap Sort uses a binary heap structure to repeatedly extract the max and build the sorted array."
-    },
-    "Shell Sort": {
-      time: "Best: O(n log n), Worst: O(n²)", space: "O(1)",
-      desc: "Shell Sort improves on insertion sort by comparing distant elements first using a gap sequence that reduces over time."
-    },
-    "Radix Sort": {
-      time: "O(nk), where k = max digit length", space: "O(n + k)",
-      desc: "Radix Sort sorts integers by processing each digit from least to most significant using a stable sort like counting sort."
-    }
-  };
+      "Bubble Sort": {
+        time: "Best: O(n), Avg/Worst: O(n²)", space: "O(1)",
+        desc: "Bubble Sort repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order. This process is repeated until the list is sorted. Though simple, it is inefficient for large datasets."
+      },
+      "Insertion Sort": {
+        time: "Best: O(n), Avg/Worst: O(n²)", space: "O(1)",
+        desc: "Insertion Sort builds the sorted list one element at a time by inserting each new item into its correct position. It works efficiently for small datasets or nearly sorted arrays."
+      },
+      "Selection Sort": {
+        time: "Best/Worst/Avg: O(n²)", space: "O(1)",
+        desc: "Selection Sort repeatedly selects the smallest (or largest) element from the unsorted portion and places it in the correct position. It performs well on small lists but is generally inefficient."
+      },
+      "Merge Sort": {
+        time: "Best/Worst/Avg: O(n log n)", space: "O(n)",
+        desc: "Merge Sort uses a divide-and-conquer strategy to split the list into halves, sort them recursively, and then merge the sorted halves. It's efficient, stable, and works well on large datasets."
+      },
+      "Quick Sort": {
+        time: "Best/Avg: O(n log n), Worst: O(n²)", space: "O(log n)",
+        desc: "Quick Sort picks a pivot element and partitions the array around it such that smaller elements go left and larger go right. It is very fast on average but can degrade to O(n²) with poor pivots."
+      },
+      "Heap Sort": {
+        time: "Best/Worst/Avg: O(n log n)", space: "O(1)",
+        desc: "Heap Sort builds a binary heap and repeatedly removes the largest element to build the sorted array. It offers good performance and does not require additional memory like Merge Sort."
+      },
+      "Shell Sort": {
+        time: "Best: O(n log n), Worst: O(n²)", space: "O(1)",
+        desc: "Shell Sort is an optimization over Insertion Sort. It sorts elements at a specific gap apart and gradually reduces the gap, leading to better performance on larger arrays."
+      },
+      "Radix Sort": {
+        time: "O(nk), where k = max digit length", space: "O(n + k)",
+        desc: "Radix Sort sorts numbers digit by digit starting from the least significant to the most significant digit using a stable sort like Counting Sort. It is efficient for integers and fixed-length data."
+      }
+    };
+    
 
   const selected = info[name];
   algoInfoBox.innerHTML = selected
@@ -315,16 +329,12 @@ function userLogin() {
   const username = document.getElementById('authUsername').value.trim();
   const password = document.getElementById('authPassword').value.trim();
 
-  fetch("https://sorting-backend.onrender.com/login", {
+  fetch("http://localhost:8081/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    mode: "cors",
     body: JSON.stringify({ username, password })
   })
-    .then(async res => {
-      if (!res.ok) throw new Error("Login failed");
-      return await res.json();
-    })
+    .then(res => res.json())
     .then(data => {
       if (data.success) {
         localStorage.setItem('loggedInUser', username);
@@ -333,9 +343,6 @@ function userLogin() {
       } else {
         document.getElementById('authMessage').innerText = "Invalid credentials ❌";
       }
-    })
-    .catch(() => {
-      document.getElementById('authMessage').innerText = "❌ Login failed";
     });
 }
 function userSignup() {
@@ -349,16 +356,12 @@ function userSignup() {
     return;
   }
 
-  fetch("https://sorting-backend.onrender.com/signup", {
+  fetch("http://localhost:8081/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    mode: "cors",
     body: JSON.stringify({ username, password, email })
   })
-    .then(async res => {
-      if (!res.ok) throw new Error("Signup failed");
-      return await res.json();
-    })
+    .then(res => res.json())
     .then(data => {
       if (data.success) {
         localStorage.setItem('loggedInUser', username);
@@ -367,9 +370,6 @@ function userSignup() {
       } else {
         document.getElementById('authMessage').innerText = "❌ Username already taken";
       }
-    })
-    .catch(() => {
-      document.getElementById('authMessage').innerText = "❌ Signup failed";
     });
 }
 function logoutUser() {
@@ -383,3 +383,6 @@ function logoutUser() {
   themeToggle = document.getElementById('themeToggle');
   themeToggle.addEventListener("click", toggleTheme);
 }
+
+
+
